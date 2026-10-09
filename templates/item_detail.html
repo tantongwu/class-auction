@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }}｜班級拍賣{% endblock %}
+{% block content %}
+{% set status = item.status() %}
+<p><a href="{{ url_for('teacher_home') }}">← 回物品列表</a></p>
+
+<article class="card item">
+  {% if item.image %}
+    <img class="photo" src="{{ url_for('item_image', item_id=item.id, v=item.image_version) }}" alt="{{ item.name }}">
+  {% endif %}
+  <div class="item-body">
+    <div class="item-head">
+      <h1>{{ item.name }}</h1>
+      <span class="badge {{ status }}">{{ STATUS_TEXT[status] }}</span>
+    </div>
+    {% if item.description %}<p class="desc">{{ item.description }}</p>{% endif %}
+    <dl class="facts">
+      <div><dt>底價</dt><dd>{{ item.min_price }} 點</dd></div>
+      <div><dt>開始</dt><dd>{{ item.start_at|tw }}</dd></div>
+      <div><dt>結束</dt><dd>{{ item.end_at|tw }}</dd></div>
+      {% if item.closed_at %}<div><dt>提早結標</dt><dd>{{ item.closed_at|tw }}</dd></div>{% endif %}
+    </dl>
+
+    {% if status == 'ended' %}
+      <div class="result-box">
+        {% if top %}
+          得標者：<b>{{ top.seat }} 號</b>，出價 <b>{{ top.amount }} 點</b>
+        {% else %}
+          沒有人出價，流標
+        {% endif %}
+      </div>
+    {% elif top %}
+      <div class="result-box">目前最高：<b>{{ top.seat }} 號</b>，<b>{{ top.amount }} 點</b></div>
+    {% endif %}
+
+    <div class="actions">
+      <a class="btn" href="{{ url_for('item_edit', item_id=item.id) }}">修改</a>
+      {% if status != 'ended' %}
+        <form method="post" action="{{ url_for('item_close', item_id=item.id) }}"
+              onsubmit='return confirm({{ ("確定要現在結標「" ~ item.name ~ "」嗎？結標後不能再出價。")|tojson }})'>
+          <button class="btn warn-btn" type="submit">提早結標</button>
+        </form>
+      {% endif %}
+      <form method="post" action="{{ url_for('item_delete', item_id=item.id) }}"
+            onsubmit='return confirm({{ ("確定要刪除「" ~ item.name ~ "」和它所有的出價紀錄嗎？這個動作不能復原。")|tojson }})'>
+        <button class="btn danger" type="submit">刪除</button>
+      </form>
+    </div>
+  </div>
+</article>
+
+<section class="card" data-autorefresh="10">
+  <h2>出價紀錄（{{ bids|length }} 筆）</h2>
+  {% if bids %}
+  <table class="table">
+    <thead><tr><th>名次</th><th>座號</th><th>點數</th><th>時間</th></tr></thead>
+    <tbody>
+      {% for bid in bids %}
+      <tr {% if loop.first %}class="top"{% endif %}>
+        <td>{{ loop.index }}</td><td>{{ bid.seat }} 號</td><td>{{ bid.amount }}</td>
+        <td>{{ bid.created_at.strftime('%m/%d %H:%M:%S') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">還沒有人出價。</p>
+  {% endif %}
+</section>
+{% endblock %}

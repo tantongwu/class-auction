@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}{{ '修改' if item else '新增' }}物品｜班級拍賣{% endblock %}
+{% block content %}
+<h1>{{ '修改物品' if item else '新增物品' }}</h1>
+
+<form class="card" method="post" enctype="multipart/form-data">
+  <label>物品名稱
+    <input name="name" maxlength="100" required value="{{ form.get('name', item.name if item else '') }}">
+  </label>
+
+  <label>說明（可不填）
+    <textarea name="description" rows="3">{{ form.get('description', item.description if item else '') }}</textarea>
+  </label>
+
+  <label>照片{% if item and item.image %}（不換照片就不用選）{% endif %}
+    <input name="image" type="file" accept="image/*">
+  </label>
+  {% if item and item.image %}
+    <img class="preview" src="{{ url_for('item_image', item_id=item.id, v=item.image_version) }}" alt="目前照片">
+  {% endif %}
+
+  {% if locked %}
+    <p class="warn small">已經有人出價，底價和開始時間不能再修改。</p>
+  {% endif %}
+
+  <label>底價（點）
+    <input name="min_price" type="number" inputmode="numeric" min="1" step="1" required
+           value="{{ form.get('min_price', item.min_price if item else 1) }}" {% if locked %}disabled{% endif %}>
+  </label>
+
+  <div class="two-col">
+    <label>開始時間
+      <input name="start_at" type="datetime-local" required
+             value="{{ form.get('start_at', default_start.strftime('%Y-%m-%dT%H:%M')) }}" {% if locked %}disabled{% endif %}>
+    </label>
+    <label>結束時間
+      <input name="end_at" type="datetime-local" required
+             value="{{ form.get('end_at', default_end.strftime('%Y-%m-%dT%H:%M')) }}">
+    </label>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary big" type="submit">儲存</button>
+    <a class="btn" href="{{ url_for('item_detail', item_id=item.id) if item else url_for('teacher_home') }}">取消</a>
+  </div>
+</form>
+{% endblock %}

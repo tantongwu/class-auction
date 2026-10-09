@@ -1,0 +1,13 @@
+# 密碼和本機設定
+.env
+
+# 本機資料庫
+*.db
+
+# Python 產生的檔案
+.venv/
+__pycache__/
+.pytest_cache/
+
+# 工具產生的檔案
+.omc/

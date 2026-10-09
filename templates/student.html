@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}出價｜班級拍賣{% endblock %}
+{% block content %}
+<div id="student-page" data-state-url="{{ url_for('student_state_api') }}">
+
+  <section class="card points">
+    {% if state.sheet_error %}
+      <p class="warn">暫時讀不到點數：{{ state.sheet_error }}</p>
+    {% else %}
+      <div class="points-row">
+        <div>
+          <div class="label">可用點數</div>
+          <div class="big-number" data-field="available">{{ state.available }}</div>
+        </div>
+        <div class="muted small">
+          試算表點數 <span data-field="sheet_points">{{ state.sheet_points }}</span><br>
+          已扣除你目前領先、還沒結算的出價
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if not state['items'] %}
+    <p class="card muted">目前沒有拍賣物品。</p>
+  {% endif %}
+
+  {% for it in state['items'] %}
+  <article class="card item status-{{ it.status }}" id="item-{{ it.id }}"
+           data-item="{{ it.id }}" data-status="{{ it.status }}">
+    {% if it.has_image %}
+      <img class="photo" src="{{ url_for('item_image', item_id=it.id, v=it.image_version) }}" alt="{{ it.name }}" loading="lazy">
+    {% endif %}
+    <div class="item-body">
+      <div class="item-head">
+        <h2>{{ it.name }}</h2>
+        <span class="badge {{ it.status }}">{{ it.status_text }}</span>
+      </div>
+      {% if it.description %}<p class="desc">{{ it.description }}</p>{% endif %}
+
+      <dl class="facts">
+        <div><dt>底價</dt><dd>{{ it.min_price }} 點</dd></div>
+        <div><dt>目前最高</dt><dd data-field="top_amount">{{ it.top_amount if it.top_amount is not none else '尚無人出價' }}</dd></div>
+        <div><dt>你的最高出價</dt><dd data-field="my_best">{{ it.my_best if it.my_best is not none else '—' }}</dd></div>
+        <div>
+          {% if it.status == 'upcoming' %}
+            <dt>距離開始</dt><dd class="countdown" data-until="{{ it.start_at }}"></dd>
+          {% elif it.status == 'active' %}
+            <dt>剩餘時間</dt><dd class="countdown" data-until="{{ it.end_at }}"></dd>
+          {% else %}
+            <dt>狀態</dt><dd>已結標</dd>
+          {% endif %}
+        </div>
+      </dl>
+
+      <p class="lead-msg" data-field="lead_msg">
+        {%- if it.won %}<span class="good">🎉 恭喜你得標！</span>
+        {%- elif it.status == 'ended' and it.my_best is not none %}<span class="muted">沒有得標</span>
+        {%- elif it.i_lead %}<span class="good">你目前領先</span>
+        {%- elif it.my_best is not none %}<span class="bad">你的出價被超過了</span>
+        {%- endif -%}
+      </p>
+
+      {% if it.status == 'active' %}
+      <form class="bid-form" method="post" action="{{ url_for('student_bid', item_id=it.id) }}">
+        <input name="amount" type="number" inputmode="numeric" min="{{ it.min_next }}" step="1"
+               placeholder="至少 {{ it.min_next }} 點" data-field="min_next" required>
+        <button class="btn primary" type="submit">出價</button>
+      </form>
+      {% endif %}
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}

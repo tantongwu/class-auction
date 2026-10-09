@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}班級拍賣{% endblock %}
+{% block content %}
+<section class="card hero">
+  <h1>班級拍賣進行中</h1>
+  <p class="muted">用累積點數競標喜歡的物品！登入後就能出價。</p>
+  <a class="btn primary big" href="{{ url_for('login') }}">登入出價</a>
+</section>
+
+{% if not items %}
+  <p class="card muted">目前沒有拍賣中的物品，請晚點再來看看。</p>
+{% endif %}
+
+<div data-autorefresh="15">
+{% for item in items %}
+  {% set status = item.status() %}
+  {% set top = item.top_bid() %}
+  <article class="card item status-{{ status }}">
+    {% if item.image %}
+      <img class="photo" src="{{ url_for('item_image', item_id=item.id, v=item.image_version) }}" alt="{{ item.name }}" loading="lazy">
+    {% endif %}
+    <div class="item-body">
+      <div class="item-head">
+        <h2>{{ item.name }}</h2>
+        <span class="badge {{ status }}">{{ '即將開始' if status == 'upcoming' else STATUS_TEXT[status] }}</span>
+      </div>
+      {% if item.description %}<p class="desc">{{ item.description }}</p>{% endif %}
+
+      <dl class="facts">
+        <div><dt>底價</dt><dd>{{ item.min_price }} 點</dd></div>
+        <div><dt>目前最高</dt><dd>{{ top.amount if top else '尚無人出價' }}</dd></div>
+        <div><dt>出價次數</dt><dd>{{ item.bids|length }} 次</dd></div>
+        <div>
+          {% if status == 'upcoming' %}
+            <dt>距離開始</dt><dd class="countdown" data-until="{{ iso(item.start_at) }}"></dd>
+          {% else %}
+            <dt>剩餘時間</dt><dd class="countdown" data-until="{{ iso(item.end_at) }}"></dd>
+          {% endif %}
+        </div>
+      </dl>
+
+      {% if status == 'active' %}
+        <a class="btn primary big" href="{{ url_for('login') }}">登入出價</a>
+      {% endif %}
+    </div>
+  </article>
+{% endfor %}
+</div>
+{% endblock %}

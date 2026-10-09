@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}老師後台｜班級拍賣{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>拍賣物品</h1>
+  <a class="btn primary" href="{{ url_for('item_new') }}">＋ 新增物品</a>
+</div>
+
+{% if not items %}
+  <p class="card muted">還沒有物品，按「新增物品」開始。</p>
+{% endif %}
+
+<div data-autorefresh="15">
+{% for item in items %}
+  {% set status = item.status() %}
+  {% set top = item.top_bid() %}
+  <a class="card row-link" href="{{ url_for('item_detail', item_id=item.id) }}">
+    {% if item.image %}
+      <img class="thumb" src="{{ url_for('item_image', item_id=item.id, v=item.image_version) }}" alt="">
+    {% else %}
+      <div class="thumb empty">無照片</div>
+    {% endif %}
+    <div class="row-main">
+      <div class="item-head">
+        <strong>{{ item.name }}</strong>
+        <span class="badge {{ status }}">{{ STATUS_TEXT[status] }}</span>
+      </div>
+      <div class="muted small">
+        底價 {{ item.min_price }} 點｜{{ item.start_at|tw }} ～ {{ (item.closed_at or item.end_at)|tw }}
+      </div>
+      <div class="small">
+        {% if top %}最高 <b>{{ top.amount }}</b> 點（{{ top.seat }} 號）・共 {{ item.bids|length }} 次出價
+        {% else %}尚無人出價{% endif %}
+      </div>
+    </div>
+  </a>
+{% endfor %}
+</div>
+{% endblock %}

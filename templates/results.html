@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}得標統計｜班級拍賣{% endblock %}
+{% block content %}
+<h1>得標統計</h1>
+
+<section class="card">
+  <h2>待扣點（照這張表到試算表扣點）</h2>
+  {% if per_seat %}
+  <table class="table">
+    <thead><tr><th>座號</th><th>要扣的點數</th></tr></thead>
+    <tbody>
+      {% for seat, total in per_seat %}
+        <tr><td>{{ seat }} 號</td><td><b>{{ total }}</b></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="muted small">在試算表扣完點後，到下面每件物品按「已扣點」，點數才不會重複計算。</p>
+  {% else %}
+    <p class="muted">目前沒有待扣點的得標紀錄。</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h2>已結標物品</h2>
+  {% if rows %}
+  <table class="table">
+    <thead><tr><th>物品</th><th>得標者</th><th>點數</th><th>扣點</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td><a href="{{ url_for('item_detail', item_id=row.item.id) }}">{{ row.item.name }}</a></td>
+        {% if row.top %}
+          <td>{{ row.top.seat }} 號</td>
+          <td>{{ row.top.amount }}</td>
+          <td>
+            <form method="post" action="{{ url_for('item_deducted', item_id=row.item.id) }}">
+              {% if row.item.deducted %}
+                <input type="hidden" name="value" value="0">
+                <button class="btn small-btn done" type="submit" title="按一下改回未扣點">✔ 已扣點</button>
+              {% else %}
+                <input type="hidden" name="value" value="1">
+                <button class="btn small-btn primary" type="submit">標記已扣點</button>
+              {% endif %}
+            </form>
+          </td>
+        {% else %}
+          <td colspan="3" class="muted">流標（沒有人出價）</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="muted">還沒有結標的物品。</p>
+  {% endif %}
+</section>
+{% endblock %}

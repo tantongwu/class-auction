@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}登入｜班級拍賣{% endblock %}
+{% block content %}
+<p class="narrow"><a href="{{ url_for('index') }}">← 先看看有哪些拍賣物品</a></p>
+<section class="card narrow">
+  <h1>同學登入</h1>
+  <form method="post" action="{{ url_for('login') }}">
+    <input type="hidden" name="role" value="student">
+    <label>座號
+      <input name="seat" type="number" inputmode="numeric" min="1" max="99" required autofocus>
+    </label>
+    <label>密碼
+      <input name="password" type="password" inputmode="numeric" autocomplete="current-password" required>
+    </label>
+    <button class="btn primary big" type="submit">登入</button>
+  </form>
+</section>
+
+<details class="card narrow teacher-login">
+  <summary>老師登入</summary>
+  <form method="post" action="{{ url_for('login') }}">
+    <input type="hidden" name="role" value="teacher">
+    <label>老師密碼
+      <input name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button class="btn big" type="submit">老師登入</button>
+  </form>
+</details>
+{% endblock %}
